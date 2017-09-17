@@ -1,14 +1,14 @@
 [
 {
-  "modid": "examplemod",
-  "name": "Example Mod",
-  "description": "Example placeholder mod.",
-  "version": "${version}",
-  "mcversion": "${mcversion}",
-  "url": "",
+  "modid": "TFECore",
+  "name": "Twin Fortress Espionage Core",
+  "description": "The Brain of the Twin Fortress Espionage gamemode",
+  "version": "1.0.0",
+  "mcversion": "1.10.2",
+  "url": "https://github.com/ReRenderReality/TFECore",
   "updateUrl": "",
-  "authorList": ["ExampleDude"],
-  "credits": "The Forge and FML guys, for making this example",
+  "authorList": ["Mozaran"],
+  "credits": "N/A",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []
