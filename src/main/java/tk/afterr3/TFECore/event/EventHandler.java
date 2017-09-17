@@ -20,7 +20,7 @@ public class EventHandler {
 
     public EventHandler() {
         this.client = FMLCommonHandler.instance().getEffectiveSide().isClient();
-        System.out.println("HN Event Handler started on side " + FMLCommonHandler.instance().getEffectiveSide());
+        System.out.println("TFE Event Handler started on side " + FMLCommonHandler.instance().getEffectiveSide());
     }
 
     @SubscribeEvent

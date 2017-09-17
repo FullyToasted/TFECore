@@ -17,6 +17,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
 import tk.afterr3.TFECore.commands.CommandName;
+import tk.afterr3.TFECore.common.ModUtils;
 import tk.afterr3.TFECore.event.EventHandler;
 import tk.afterr3.TFECore.network.packet.PacketTFEChange;
 
@@ -36,7 +37,7 @@ import java.util.logging.Logger;
 @Mod(modid = TFECore.MODID, useMetadata = true)
 public class TFECore
 {
-    public static final String MODID = "TFECore";
+    static final String MODID = "TFECore";
 
      //The public INSTANCE for the mod
     @Mod.Instance(TFECore.MODID)
@@ -46,26 +47,24 @@ public class TFECore
     public Configuration config;
 
     //The channel that Hide Names uses for custom packets
-    public String channel;
-    public SimpleNetworkWrapper network;
+    private String channel;
+    private SimpleNetworkWrapper network;
 
-    /**
-     * All players currently in the file {@link #fileHiddenPlayers hidden.txt}
-     */
+
+    //All players currently in the file {@link #fileTFECore hidden.txt}
     public final Map<String, Boolean> hiddenPlayers = new HashMap<>();
-    public final Logger LOGGER = Logger.getLogger("Minecraft");
+    private final Logger LOGGER = Logger.getLogger("Minecraft");
 
     public static final int commandPermissionLevel = 0;
     public static final String commandName1 = "name";
     public static final String commandName2 = "names";
 
-    /**
-     * The path to the file hidden.txt
-     */
-    public String fileHiddenPlayers;
-    public final String fileName = "hidden.txt";
-    public String serverFilePath;
-    public String clientFilePath;
+
+    //The path to the file hidden.txt
+    private String fileTFECore;
+    private final String fileName = "hidden.txt";
+    private String serverFilePath;
+    private String clientFilePath;
 
     public static boolean defaultHiddenStatus;
     public static boolean saveOfflinePlayers;
@@ -119,51 +118,51 @@ public class TFECore
     }
 
     /**
-     * Checks to see if the server is a dedicated server. If it is, it sets {@link #fileHiddenPlayers} to {@link #serverFilePath} + {@link #fileName}.
-     * Otherwise, its sets {@link #fileHiddenPlayers} to {@link #clientFilePath} + {@link #fileName}.
+     * Checks to see if the server is a dedicated server. If it is, it sets {@link #fileTFECore} to {@link #serverFilePath} + {@link #fileName}.
+     * Otherwise, its sets {@link #fileTFECore} to {@link #clientFilePath} + {@link #fileName}.
      */
-    public void getFilePath() {
+    private void getFilePath() {
         if (FMLCommonHandler.instance().getMinecraftServerInstance().getServer().isDedicatedServer()) {
             if (!serverFilePath.endsWith("/")) {
                 if (!fileName.startsWith("/")) {
-                    fileHiddenPlayers = serverFilePath + "/" + fileName;
+                    fileTFECore = serverFilePath + "/" + fileName;
                 } else {
-                    fileHiddenPlayers = serverFilePath + fileName;
+                    fileTFECore = serverFilePath + fileName;
                 }
             } else {
                 if (!fileName.startsWith("/")) {
-                    fileHiddenPlayers = serverFilePath + fileName;
+                    fileTFECore = serverFilePath + fileName;
                 } else {
-                    fileHiddenPlayers = serverFilePath.substring(0, serverFilePath.length() - 1) + fileName;
+                    fileTFECore = serverFilePath.substring(0, serverFilePath.length() - 1) + fileName;
                 }
             }
         } else {
             if (!clientFilePath.endsWith("/")) {
                 if (!fileName.startsWith("/")) {
-                    fileHiddenPlayers = clientFilePath + "/" + fileName;
+                    fileTFECore = clientFilePath + "/" + fileName;
                 } else {
-                    fileHiddenPlayers = clientFilePath + fileName;
+                    fileTFECore = clientFilePath + fileName;
                 }
             } else {
                 if (!fileName.startsWith("/")) {
-                    fileHiddenPlayers = clientFilePath + fileName;
+                    fileTFECore = clientFilePath + fileName;
                 } else {
-                    fileHiddenPlayers = clientFilePath.substring(0, clientFilePath.length() - 1) + fileName;
+                    fileTFECore = clientFilePath.substring(0, clientFilePath.length() - 1) + fileName;
                 }
             }
         }
 
-        if (fileHiddenPlayers.startsWith("/")) {
-            fileHiddenPlayers = fileHiddenPlayers.substring(1);
+        if (fileTFECore.startsWith("/")) {
+            fileTFECore = fileTFECore.substring(1);
         }
     }
 
     /**
-     * Removes all players from the file {@link #fileHiddenPlayers} and {@link #hiddenPlayers}
+     * Removes all players from the file {@link #fileTFECore} and {@link #hiddenPlayers}
      */
     public void clearHiddenPlayers() {
         hiddenPlayers.clear();
-        new File(fileHiddenPlayers).delete();
+        new File(fileTFECore).delete();
     }
 
     /**
@@ -171,7 +170,7 @@ public class TFECore
      */
     public void getHiddenPlayers() {
         try {
-            BufferedReader br = new BufferedReader(new FileReader(fileHiddenPlayers));
+            BufferedReader br = new BufferedReader(new FileReader(fileTFECore));
             String line;
             hiddenPlayers.clear();
             while ((line = br.readLine()) != null) {
@@ -184,18 +183,18 @@ public class TFECore
             }
             br.close();
         } catch (FileNotFoundException e) {
-            LOGGER.log(Level.FINE, "Error: File " + fileHiddenPlayers + " not found.");
-            LOGGER.log(Level.FINE, "Creating file " + fileHiddenPlayers);
-            createFile(fileHiddenPlayers);
+            LOGGER.log(Level.FINE, "Error: File " + fileTFECore + " not found.");
+            LOGGER.log(Level.FINE, "Creating file " + fileTFECore);
+            createFile(fileTFECore);
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Error: " + e.getMessage());
         }
     }
 
     /**
-     * Called every time a user connects. If that user is not in {@link #fileHiddenPlayers hidden.txt}, then they are placed in {@link #fileHiddenPlayers hidden.txt} with the hidden status of whatever
-     * {@link #defaultHiddenStatus defaultHiddenStatus} is set to. If they are in {@link #fileHiddenPlayers hidden.txt}, then their hidden status is whatever is
-     * said in {@link #fileHiddenPlayers hidden.txt}
+     * Called every time a user connects. If that user is not in {@link #fileTFECore hidden.txt}, then they are placed in {@link #fileTFECore hidden.txt} with the hidden status of whatever
+     * {@link #defaultHiddenStatus defaultHiddenStatus} is set to. If they are in {@link #fileTFECore hidden.txt}, then their hidden status is whatever is
+     * said in {@link #fileTFECore hidden.txt}
      *
      * @param @EntityPlayer#player
      */
@@ -256,7 +255,7 @@ public class TFECore
             updateHiddenPlayers(username, hidden);
 
             if (!username.equalsIgnoreCase(sender)) {
-                TFECore.playerForName(username).addChatMessage(new TextComponentString(sender +
+                ModUtils.playerForName(username).addChatMessage(new TextComponentString(sender +
                         " set your name to be: " +
                         (hiddenPlayers.get(username) ? TextFormatting.GREEN + "Hidden" : TextFormatting.DARK_RED + "Visible")));
             }
@@ -277,7 +276,7 @@ public class TFECore
 
             hiddenPlayers.remove(username);
             hiddenPlayers.put(username, hidden);
-            refreshFile(fileHiddenPlayers);
+            refreshFile(fileTFECore);
 
             this.network.sendToAll(new PacketTFEChange(username, hidden));
         }
@@ -285,6 +284,7 @@ public class TFECore
 
     public void removeOfflinePlayers() {
         String[] users = FMLCommonHandler.instance().getMinecraftServerInstance().getServer().getAllUsernames();
+
         Object[] keySet = hiddenPlayers.keySet().toArray();
         Boolean[] keepUsers = new Boolean[keySet.length];
         Boolean foundUser = false;
@@ -312,7 +312,7 @@ public class TFECore
         }
 
         if (foundDifferent) {
-            refreshFile(fileHiddenPlayers);
+            refreshFile(fileTFECore);
         }
     }
 
@@ -322,15 +322,11 @@ public class TFECore
     }
 
     public void checkFile() {
-        File file = new File(fileHiddenPlayers);
+        File file = new File(fileTFECore);
 
         if (!file.exists()) {
-            createFile(fileHiddenPlayers);
+            createFile(fileTFECore);
         }
-    }
-
-    public static EntityPlayerMP playerForName(String username) {
-        return FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUsername(username);
     }
 
     public static String colorBool(boolean bool) {
